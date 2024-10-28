@@ -57,9 +57,9 @@ def get_model():
 
 @app.post("/put_task/")
 async def put_task(
-    image_paths: List[str] = Form(...),  # Список путей к изображениям
+    image_paths: List[str] = [],
     prompt: str = Form(...),
-    model: LlavaModel = Depends(get_model)  # Используем Depends для передачи модели
+    model: LlavaModel = Depends(get_model)
 ):
     """
     Ручка для добавления задачи с несколькими изображениями в очередь. Возвращает уникальный ID задачи.
@@ -71,7 +71,7 @@ async def put_task(
 @app.post("/get_task_result/")
 async def get_task_result(
     task: TaskResult,
-    model: LlavaModel = Depends(get_model)  # Используем Depends для передачи модели
+    model: LlavaModel = Depends(get_model)
 ):
     """
     Ручка для получения результата выполнения задачи по ID.

@@ -15,8 +15,20 @@ from llava.conversation import conv_templates
 
 warnings.filterwarnings("ignore")
 
+MODEL_NAMES = {
+    # interleave
+    "interleave-0.5b": "lmms-lab/llava-next-interleave-qwen-0.5b",
+    "interleave-7b": "lmms-lab/llava-next-interleave-qwen-7b",
+    "interleave-7b-dpo": "lmms-lab/llava-next-interleave-qwen-7b-dpo",
+    
+    # onevision
+    "onevision-0.5b": "lmms-lab/llava-onevision-qwen2-0.5b-si",
+    "onevision-7b": "lmms-lab/llava-onevision-qwen2-7b-si",
+    "onevision-7b-chat": "lmms-lab/llava-onevision-qwen2-7b-ov-chat",
+}
+
 class LlavaModel:
-    def __init__(self, pretrained="lmms-lab/llava-onevision-qwen2-7b-ov-chat", model_name="llava_qwen", device="cuda", logger=None):
+    def __init__(self, pretrained=MODEL_NAMES["interleave-7b-dpo"], model_name="llava_qwen", device="cuda", logger=None):
         self.device = device
         self.model_name = model_name
         self.pretrained = pretrained
@@ -45,11 +57,6 @@ class LlavaModel:
         self.task_status[task_id] = "in progress"
         self.logger.log(f"Задача с ID {task_id} начала выполняться")
 
-        # Загрузка изображений
-        images = [Image.open(image_path) for image_path in image_paths]
-        image_tensors = process_images(images, self.image_processor, self.model.config)
-        image_tensors = [_image.to(dtype=torch.float16, device=self.device) for _image in image_tensors]
-
         # Создание промпта без добавления токенов изображений
         conv_template = "qwen_1_5"
         question = prompt  # Токены изображений уже содержатся в промпте
@@ -59,17 +66,31 @@ class LlavaModel:
         prompt_question = conv.get_prompt()
 
         input_ids = tokenizer_image_token(prompt_question, self.tokenizer, IMAGE_TOKEN_INDEX, return_tensors="pt").unsqueeze(0).to(self.device)
-        image_sizes = [image.size for image in images]
 
-        # Генерация ответа модели
-        cont = self.model.generate(
-            input_ids,
-            images=image_tensors,
-            image_sizes=image_sizes,
-            do_sample=False,
-            temperature=0,
-            max_new_tokens=1000,
-        )
+        # Загрузка изображений
+        if len(image_paths) > 0:
+            images = [Image.open(image_path) for image_path in image_paths]
+            image_tensors = process_images(images, self.image_processor, self.model.config)
+            image_tensors = [_image.to(dtype=torch.float16, device=self.device) for _image in image_tensors]
+            image_sizes = [image.size for image in images]
+            
+            # Генерация ответа модели
+            cont = self.model.generate(
+                input_ids,
+                images=image_tensors,
+                image_sizes=image_sizes,
+                do_sample=False,
+                temperature=0,
+                max_new_tokens=1000,
+            )
+        else:
+            # Генерация ответа модели
+            cont = self.model.generate(
+                input_ids,
+                do_sample=False,
+                temperature=0,
+                max_new_tokens=1000,
+            )
         text_outputs = self.tokenizer.batch_decode(cont, skip_special_tokens=True)
         # Очищаем кэш CUDA после завершения задачи
 
