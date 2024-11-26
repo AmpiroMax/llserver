@@ -28,7 +28,7 @@ MODEL_NAMES = {
 }
 
 class LlavaModel:
-    def __init__(self, pretrained=MODEL_NAMES["interleave-7b-dpo"], model_name="llava_qwen", device="cuda", logger=None):
+    def __init__(self, pretrained=MODEL_NAMES["onevision-7b-chat"], model_name="llava_qwen", device="cuda", logger=None):
         self.device = device
         self.model_name = model_name
         self.pretrained = pretrained
