@@ -36,4 +36,4 @@ if [ ! -f "$docker_file_path" ]; then
     exit 1
 fi
 
-docker build -t "llmserver.$model_name" -f "$docker_file_path" llserver/
+docker build -t "llmserver.$model_name" -f "$docker_file_path" .
