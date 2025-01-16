@@ -5,4 +5,4 @@
 
 conda activate llama2
 cd /home/mpatratskiy/work/meta_world/llserver/llserver/server
-uvicorn server:app --reload
+uvicorn uniserver:app --reload --host 0.0.0.0 --port 8000

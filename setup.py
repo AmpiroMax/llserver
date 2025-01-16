@@ -9,7 +9,7 @@ setup(
     version="0.1.0",
     install_requires=[
         # Installing llava from GitHub with its "train" extras
-        'llava[train] @ git+https://github.com/LLaVA-VL/LLaVA-NeXT.git@main#egg=llava',
+        # 'llava[train] @ git+https://github.com/LLaVA-VL/LLaVA-NeXT.git@main#egg=llava',
     ],
     extras_require={
         'train': [

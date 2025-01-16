@@ -1,31 +1,56 @@
 import requests
-import time
+import hashlib
+import json
 
-# Адрес вашего FastAPI сервера
-BASE_URL = "http://127.0.0.1:8000"
+# Unified get / put functions
 
-def put_task(image_paths, prompt):
+def put_task(image_paths, prompt, port, **kwargs):
     """
     Функция для добавления задачи с несколькими изображениями в очередь.
     """
-    url = f"{BASE_URL}/put_task/"
-    
-    # Превращаем список путей в строку с разделителем, чтобы передать через форму
+    url = f"http://127.0.0.1:{port}/put_task/"
     data = {
-        'image_paths': image_paths,  # Передаём как строку с разделителем
-        'prompt': prompt
+        'prompt': prompt,
+        'image_paths': image_paths,
+        'extra_params': kwargs
     }
     
-    # Выполняем POST запрос
-    response = requests.post(url, data=data)
-    
+    response = requests.post(url, json=data)
     return response.json()
 
-def get_task_result(task_id):
+
+def get_task_result(task_id, port):
     """
     Функция для получения результата задачи по её ID.
     """
-    url = f"{BASE_URL}/get_task_result/"
-    json_data = {"task_id": task_id}
-    response = requests.post(url, json=json_data)
+    url = f"http://127.0.0.1:{port}/get_task_result/"
+    params = {
+        "task_id": task_id
+    }
+    
+    response = requests.post(url, params=params)
     return response.json()
+
+
+def get_string_hash(input_string):
+    """
+    Function to calculate the MD5 hash of a given string.
+    """
+    return hashlib.md5(input_string.encode()).hexdigest()
+
+
+def read_json(path: str) -> dict:
+    """
+    Function to read data from a JSON file.
+    """
+    with open(path, 'r') as file:
+        data = json.load(file)
+    return data
+
+
+def write_json(data: dict, path: str):
+    """
+    Function to write data to a JSON file.
+    """
+    with open(path, 'w') as file:
+        json.dump(data, file, indent=4)
