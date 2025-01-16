@@ -30,10 +30,10 @@ fi
 
 
 # Build docker image from given model docker file
-docker_file_path="/home/mpatratskiy/work/meta_world/llserver/llserver/models/$model_name/dockerfile"
+docker_file_path="llserver/models/$model_name/dockerfile"
 if [ ! -f "$docker_file_path" ]; then
     echo "Dockerfile for model $model_name not found at $docker_file_path"
     exit 1
 fi
 
-docker build -t "llmserver.$model_name" -f "$docker_file_path" /home/mpatratskiy/work/meta_world/llserver
+docker build -t "llmserver.$model_name" -f "$docker_file_path" llserver/

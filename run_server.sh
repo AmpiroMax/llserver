@@ -4,5 +4,5 @@
 # export HF_HOME="/run/user/1004/mpatrat_data/hf"
 
 conda activate llama2
-cd /home/mpatratskiy/work/meta_world/llserver/llserver/server
+cd llserver/server
 uvicorn server:app --reload
