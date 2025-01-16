@@ -21,7 +21,9 @@ class ModelInfo(BaseModel):
 class RunningModels(BaseModel):
     models: Dict[str, ModelInfo]
 
-running_models_data = read_json('/home/mpatratskiy/work/meta_world/llserver/llserver/server/running_models.json')
+base_path = '/home/mpatratskiy/work/meta_world/llserver'
+
+running_models_data = read_json(base_path+'/llserver/server/running_models.json')
 running_models_info: RunningModels = RunningModels(models={
     model_id: ModelInfo(**model_info) 
     for model_id, model_info in running_models_data["models"].items()
@@ -64,12 +66,12 @@ async def start_model(model_name: str):
             name=f"llmserver.{model_name}.{model_id}",
             ports={'8080/tcp': free_port},
             volumes={
-                '/home/mpatratskiy/work/meta_world/llserver/data': {
+                base_path+'/data': {
                     'bind': '/llserver/data',
                     'mode': 'rw',
                 },
-                '/home/mpatratskiy/work/meta_world/llserver/logs': {
-                    'bind': '/llserver/logs',
+                base_path+'/logs': {
+                    'bind': '/llserver/logs',   
                     'mode': 'rw',
                 },
                 '/home/mpatratskiy/work/eai_fiqa/data': {
@@ -83,7 +85,7 @@ async def start_model(model_name: str):
         logger.log(f"Модель {model_name} c id {model_id} запущена в контейнере {container.id}")
         running_models_info.models[model_id] = ModelInfo(model_name=model_name, port=free_port, model_id=model_id, container_id=container.id)
         running_models_info_json = running_models_info.dict()
-        write_json(running_models_info_json, '/home/mpatratskiy/work/meta_world/llserver/llserver/server/running_models.json')
+        write_json(running_models_info_json, base_path+'/llserver/server/running_models.json')
         return {
             "model_name": model_name,
             "status": "Model started",
@@ -134,7 +136,7 @@ async def stop_model(model_id: str):
         logger.log(f"Модель {model_id} остановлена и контейнер {container.id} удален")
         del running_models_info.models[model_id]
         running_models_info_json = running_models_info.dict()
-        write_json(running_models_info_json, '/home/mpatratskiy/work/meta_world/llserver/llserver/server/running_models.json')
+        write_json(running_models_info_json, base_path+'/llserver/server/running_models.json')
         return {
             "model_id": model_id,
             "status": "Model stopped",
