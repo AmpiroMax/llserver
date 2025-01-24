@@ -3,7 +3,7 @@ import time
 from utils import put_task, get_task_result
 
 # 1. Добавляем задачу в очередь
-image_path = "/home/mpatratskiy/work/meta_world/16_changed_state.png"
+image_path = "~/work/meta_world/16_changed_state.png"
 prompt = "Describe image"
 
 tasks_ids = []

@@ -1,5 +1,4 @@
 import os
-# os.environ['HF_HOME'] = "/home/mpatratskiy/work/meta_world/llava_ckhp"
 
 import asyncio
 import uuid

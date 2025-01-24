@@ -5,7 +5,7 @@ setup(
     packages=find_packages(),
     python_requires=">=3",
     description="LLServer: project for serving LLM",
-    author="Patratskiy Maxim",
+    author="anonymus",
     version="0.1.0",
     install_requires=[
         # Installing llava from GitHub with its "train" extras

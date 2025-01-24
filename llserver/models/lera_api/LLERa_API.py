@@ -84,11 +84,13 @@ class LLERa_API:
         self.logger.log("="*60)
         # prompt = "[goal]###[current_plan]###[available_actions]"
         goal, success_actions, current_plan, available_actions = prompt.split("###")
+        first_action = current_plan.split(",")[0]
         info = {
             "[goal]": goal,
             "[success_actions]": success_actions,
             "[current_plan]": current_plan,
             "[available_actions]": available_actions,
+            "[first_action]": first_action,
         }
 
         model_name = kwargs.get("model", "gpt-4o")
@@ -102,7 +104,8 @@ class LLERa_API:
             self.logger.log("Using openai prompts")
 
         if "alfred" in model_name:
-            prompt_templates = prompt_templates["alfred"]
+            template_name = model_name.split("###")[1]
+            prompt_templates = prompt_templates[template_name]
             model_name = model_name.split("###")[0]
             self.logger.log("Using alfred variant of prompts")
 

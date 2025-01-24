@@ -1,140 +1,109 @@
-# LLServer: FastAPI Server for Serving LLaVA Model
+# Project Name
 
-**LLServer** is a project designed to serve the LLaVA (Large Language and Vision Assistant) model via a FastAPI server. This server enables the processing of image and text prompts through the LLaVA model to generate detailed responses. The project supports multiple images in a single request and handles tasks asynchronously.
-
-## Table of Contents
-- [Features](#features)
-- [Installation](#installation)
-- [Usage](#usage)
-- [API Endpoints](#api-endpoints)
-- [Configuration](#configuration)
-- [Contributing](#contributing)
-- [License](#license)
+This project provides a framework for managing and interacting with various AI models using a unified server (`uniserver`) and a handler for easy communication. The models are containerized and can be started, stopped, and queried for tasks and results.
 
 ## Features
 
-- **FastAPI Server**: Lightweight, fast web server for handling requests to the LLaVA model.
-- **LLaVA Model Integration**: Uses the LLaVA model for multimodal tasks with image and text prompts.
-- **Asynchronous Task Handling**: Queue tasks and check their status or results asynchronously.
-- **Support for Multiple Images**: Handle multiple images in a single API call for better image-based reasoning.
+- **Unified Server (`uniserver`)**: A FastAPI-based server that manages the lifecycle of AI model containers.
+- **Handler**: A Python class for interacting with the `uniserver` to manage models and tasks.
+- **Model Management**: Start, stop, and monitor models.
+- **Task Management**: Submit tasks to models and retrieve results.
+
+## Prerequisites
+
+- Docker
+- Python 3.8+
+- FastAPI
+- Uvicorn
 
 ## Installation
 
-### Prerequisites
-- Python 3.8+
-- CUDA-enabled GPU for faster inference (optional but recommended)
-
-### Steps
-
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/llserver.git
-   cd llserver
+   git clone https://github.com/your-repo/project-name.git
+   cd project-name
    ```
 
-2. Create a virtual environment and activate it:
+2. Install the required Python packages:
    ```bash
-   python3 -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   pip install -r dev_requirements.txt
    ```
 
-3. Install dependencies:
-   ```bash
-   pip install -e ".[train]"
-   ```
-
-   This command will install the required dependencies including the LLaVA model and training extras.
-
-4. Install additional dependencies for development:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-5. Set up environment variables (optional, but useful for GPU or server configuration):
-   ```bash
-   export CUDA_VISIBLE_DEVICES=0  # If using GPU
-   ```
+3. Ensure Docker is installed and running on your machine.
 
 ## Usage
 
-### Running the Server
+### Starting the Uniserver
 
-To run the FastAPI server, execute the following command:
+To start the `uniserver`, run the following command:
 
 ```bash
-uvicorn server:app --reload
+./run_uniserver.sh
 ```
 
-By default, the server will run at `http://127.0.0.1:8000`.
+### Using the Handler
 
-### Sending Requests
+The `UniserverHandler` class provides an interface to interact with the `uniserver`. Below are examples of how to use it:
 
-You can send requests to the server with image paths and text prompts using `curl` or a Python script. For example:
+#### Initialize the Handler
 
-#### Python Example:
 ```python
-import requests
+from llserver.utils.handler import UniserverHandler
 
-image_paths = ["/path/to/image1.jpg", "/path/to/image2.jpg"]
-prompt = "Describe these images."
-
-response = requests.post(
-    "http://127.0.0.1:8000/put_task/",
-    data={"prompt": prompt, "image_paths": ",".join(image_paths)}
-)
-
-print(response.json())
+# Initialize the handler with the port where the uniserver is running
+handler = UniserverHandler(port=8000)
 ```
 
-#### Bash Example:
+#### Get Running Models
+
+```python
+running_models = handler.get_running_models()
+print(running_models)
+```
+
+#### Start a Model
+Before starting a model, you need to build a docker image for it.
+
 ```bash
-curl -X POST "http://127.0.0.1:8000/put_task/" -F "prompt=Describe these images." -F "image_paths=/path/to/image1.jpg,/path/to/image2.jpg"
+./build_model.sh --model api_model
 ```
 
-## API Endpoints
+Then you can start the model.
+```python
+response = handler.start_model("api_model")
+print(response)
+```
 
-### `POST /put_task/`
-Submit a new task with a text prompt and a list of image paths.
+#### Stop a Model
 
-- **Parameters**:
-  - `image_paths` (str): Comma-separated paths to images.
-  - `prompt` (str): The text prompt to generate a response based on the images.
+```python
+response = handler.stop_model("a2a59714-f407-4e40-a460-688793a3562f")
+print(response)
+```
 
-- **Response**:
-  - A JSON object with the `task_id`.
+#### Submit a Task
 
-### `POST /get_task_result/`
-Retrieve the result of a specific task by its `task_id`.
+```python
+task_id = handler.put_task(
+    model_id="a2a59714-f407-4e40-a460-688793a3562f",
+    image_paths=["/path/to/image1.jpg", "/path/to/image2.jpg"],
+    prompt="Describe the scene in the images."
+)
+print(task_id)
+```
 
-- **Parameters**:
-  - `task_id` (str): The unique ID of the task.
+#### Get Task Result
 
-- **Response**:
-  - `status`: The current status of the task (`in queue`, `in progress`, `completed`, or `not found`).
-  - `result`: The generated response if the task is completed.
+```python
+result = handler.get_task_result(
+    model_id="a2a59714-f407-4e40-a460-688793a3562f",
+    task_id="your-task-id"
+)
+print(result)
+```
 
 ## Configuration
 
-You can configure the server's behavior via environment variables or by adjusting the `server.py` file.
+- **Dockerfile**: Each model has its own Dockerfile for containerization.
+- **Requirements**: Each model has a `requirements.txt` file specifying its dependencies.
 
-- **CUDA_VISIBLE_DEVICES**: Use this to control which GPU(s) are available for the server to use. For example, setting `CUDA_VISIBLE_DEVICES=0` will make only the first GPU available.
-
-## Contributing
-
-If you'd like to contribute to this project:
-
-1. Fork the repository.
-2. Create a new branch for your feature or bug fix.
-3. Open a pull request once your changes are ready.
-
-We welcome improvements, feature suggestions, and bug reports.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-### Additional Notes
-
-You can modify or extend the `README.md` based on more specific details of your project, such as additional dependencies or instructions for running tests.
