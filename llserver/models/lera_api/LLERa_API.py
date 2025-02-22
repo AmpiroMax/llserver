@@ -42,7 +42,13 @@ class LLERa_API:
         self.logger.log(f"image_paths: {image_paths}")
         for image_path in image_paths:
             self.logger.log("converting image to base64")
-            base64_image = encode_image(image_path)
+            try:
+                base64_image = encode_image(image_path)
+            except Exception as e:
+                print(e)
+                self.logger.log(f"error: {e}")
+                raise e
+            self.logger.log(f"base64_image_length: {len(base64_image)}")
             content.append({
                 "type": "image_url",
                 "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}
@@ -109,34 +115,43 @@ class LLERa_API:
             model_name = model_name.split("###")[0]
             self.logger.log("Using alfred variant of prompts")
 
+        predict_steps = "ler"
+        if "predict_steps" in kwargs:
+            predict_steps = kwargs["predict_steps"]
         self.logger.log(f"goal: {goal}")
         self.logger.log(f"success_actions: {success_actions}")
         self.logger.log(f"current_plan: {current_plan}")   
         self.logger.log(f"available_actions: {available_actions}")
         self.logger.log(f"image number: {len(image_paths)}")
         self.logger.log(f"model to predict: {model_name}")
+        self.logger.log(f"predict_steps: {predict_steps}")
         self.logger.log("="*30)
 
-        look_request = replace_template_with_info(prompt_templates["look"], info)
-        self.logger.log(f"look_request: \n{look_request}\n")
-        look_response = self._predict(look_request, image_paths, model=model_name)
-        info["[look_response]"] = look_response
-        self.logger.log(f"look_response: \n{look_response}\n")
-        self.logger.log("="*30)
 
-        explain_request = replace_template_with_info(prompt_templates["explain"], info)
-        self.logger.log(f"explain_request: \n{explain_request}\n")
-        explain_response = self._predict(explain_request, model=model_name)
-        info["[explain_response]"] = explain_response
-        self.logger.log(f"explain_response: \n{explain_response}\n")
-        self.logger.log("="*30)
 
-        replan_request = replace_template_with_info(prompt_templates["replan"], info)
-        self.logger.log(f"replan_request: \n{replan_request}\n")
-        replan_response = self._predict(replan_request, model=model_name)
-        info["[replan_response]"] = replan_response
-        self.logger.log(f"replan_response: \n{replan_response}\n")
-        self.logger.log("="*60)
+        if "l" in predict_steps:
+            look_request = replace_template_with_info(prompt_templates["look"], info)
+            self.logger.log(f"look_request: \n{look_request}\n")
+            look_response = self._predict(look_request, image_paths, model=model_name)
+            info["[look_response]"] = look_response
+            self.logger.log(f"look_response: \n{look_response}\n")
+            self.logger.log("="*30)
+
+        if "e" in predict_steps:
+            explain_request = replace_template_with_info(prompt_templates["explain"], info)
+            self.logger.log(f"explain_request: \n{explain_request}\n")
+            explain_response = self._predict(explain_request, model=model_name)
+            info["[explain_response]"] = explain_response
+            self.logger.log(f"explain_response: \n{explain_response}\n")
+            self.logger.log("="*30)
+
+        if "r" in predict_steps:
+            replan_request = replace_template_with_info(prompt_templates["replan"], info)
+            self.logger.log(f"replan_request: \n{replan_request}\n")
+            replan_response = self._predict(replan_request, model=model_name)
+            info["[replan_response]"] = replan_response
+            self.logger.log(f"replan_response: \n{replan_response}\n")
+            self.logger.log("="*60)
 
         # Обновляем результат и статус задачи
         self.result_queue[task_id] = info

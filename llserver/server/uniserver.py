@@ -170,7 +170,6 @@ async def put_task(
 
 
 
-
 @app.post("/get_task_result/")
 async def get_task_result(
     model_id: str,

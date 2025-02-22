@@ -235,6 +235,176 @@ Answer examples:
 """
 
 # ------------------------------------------------------------------------------------------------
+
+look_prompt_alfred_2 = """
+A chat between a curious user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user's questions.
+### Human: The robot attempted to perform the 'open("microwave")' action. It failed. Explain why.
+### Assistant: The microwave oven is already be open.
+### Human: The robot attempted to perform the 'open("fridge")' action. It failed. Explain why.
+### Assistant: The refrigerator is already be open.
+### Human: The robot attempted to perform the 'turn_on("floorlamp")' action. It failed. Explain why.
+### Assistant: The lamp is already turned on.
+### Human: The robot attempted to perform the 'turn_on("lamp")' action. It failed. Explain why.
+### Assistant: The lamp turns out to be already on.
+### Human: The robot attempted to perform the 'turn_on("lamp")' action. It failed. Explain why.
+### Assistant: The lamp has already been switched on and cannot be switched on again. 
+### Human: The robot attempted to perform the '[first_action]' action. It failed. Explain why.
+### Assistant:
+"""
+
+explain_prompt_alfred_2 = """
+A chat between a curious user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user's questions. You are able to take one of this actions at a time [move, slice, open, close, put, pick_up, turn_on, turn_off]. Imagine, you are a robot operating in a house. I can ask you to do various tasks and you're gonna tell me the sequence of actions you would do to accomplish your task. If you have been given additional information that any appliances are on or open, you need to consider that information. If something is open, you don't need to open it again, if it is on, you don't need to turn it on again. Don't look for other appliances, use what you know about.
+### Human: What would be the correct plan to accomplish the goal if the first step of the current plan failed?
+Current goal: 
+place a heated cup on a counter
+Current action plan: 
+open("microwave"), put("microwave"), close("microwave"), turn_on("microwave"), turn_off("microwave"), open("microwave"), pick_up("cup"), close("microwave"), move("counter"), put("counter")
+Additional information after checking: 
+The microwave oven is already open. The door of the microwave is open, and the robot cannot open it any further.
+### Assistant: 
+1. The first step of the current plan has failed because the microwave oven is already open.
+2. The next step would be to put cup in the microwave and close the microwave door, since the robot cannot open it any further.
+3. The updated plan would be: put("microwave"), close("microwave"), turn_on("microwave"), turn_off("microwave"), open("microwave"), pick_up("cup"), close("microwave"), move("counter"), put("counter")
+4. This updated plan will still accomplish the goal of placing a heated cup on a counter, but without trying to open the microwave door again, which is already open.
+### Human: What would be the correct plan to accomplish the goal if the first step of the current plan failed?
+Current goal: 
+place a chilled bowl in a cabinet
+Current action plan: 
+open("fridge"), put("fridge"), close("fridge"), open("fridge"), pick_up("bowl"), close("fridge"), move("cabinet"), put("cabinet")
+Additional information after checking: 
+The robot failed to open the refrigerator because it is already open. The image shows that the refrigerator door is open, and there is no need for the robot to open it again.
+### Assistant: 
+1. The first step of the current plan has failed because the fridge is already open.
+2. The next step would be to put bowl in the fridge and close the fridge door, since the robot cannot open it any further.
+3. The updated plan would be: put("fridge"), close("fridge"), open("fridge"), pick_up("bowl"), close("fridge"), move("cabinet"), put("cabinet")
+4. This updated plan will still accomplish the goal of placing a chilled bowl in a cabinet, but without trying to open the fridge door again, which is already open.
+### Human: What would be the correct plan to accomplish the goal if the first step of the current plan failed?
+Current goal: 
+Chill the bread from the counter in the fridge and put it to the left of the stove
+Current action plan: 
+open("fridge"), put("fridge"), close("fridge"), open("fridge"), pick_up("bread"), close("fridge"), move("stove"), put("stove")
+Additional information after checking: 
+The robot failed to open the refrigerator because it is already open. The image shows that the refrigerator door is open, and there is no need for the robot to open it again.
+### Assistant: 
+1. The first step of the current plan has failed because the fridge is already open.
+2. The next step would be to put bread in the fridge and close the fridge door, since the robot cannot open it any further.
+3. The updated plan would be: put("fridge"), close("fridge"), open("fridge"), pick_up("bread"), close("fridge"), move("stove"), put("stove")
+4. This updated plan will still accomplish the goal of placing a chilled bread in a cabinet, but without trying to open the fridge door again, which is already open.
+### Human: What would be the correct plan to accomplish the goal if the first step of the current plan failed?
+Current goal: 
+look at the clock under the lamp
+Current action plan: 
+turn_on("desk lamp")
+Additional information after checking: 
+The lamp is alerady turned on. No need to turning it on again
+### Assistant: 
+1. The first step of the current plan has failed because the lamp is already turned on.
+2. The goal is achived, no need to do anything.
+3. The updated plan would be: done().
+4. This updated plan will still accomplish the goal of looking at the clock under the lamp but without trying to turn the lamp on again, which is already turned on.
+### Human: What would be the correct plan to accomplish the goal if the first step of the current plan failed?
+Current goal: 
+[goal]
+Current action plan: 
+[current_plan]
+Additional information after checking: 
+[look_response]
+### Assistant:
+"""
+
+replan_prompt_alfred_2 = """A chat between a curious user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user's questions. You are able to take one of this actions at a time [move, slice, open, close, put, pick_up, turn_on, turn_off]. Imagine, you are a robot operating in a house. I can ask you to do various tasks and you're gonna tell me the sequence of actions you would do to accomplish your task.
+### Human: What is correct plan?
+Current goal: 
+pick up the alarm clock and turn on the lamp
+Current plan: 
+turn_on("desk lamp")
+Description: 
+1. The first step of the current plan has failed because the lamp is already turned on.
+2. The goal is achived, no need to do anything.
+3. The updated plan would be: done().
+4. This updated plan will still accomplish the goal of looking at the clock under the lamp but without trying to turn the lamp on again, which is already turned on.
+Available actions: 
+[move, slice, open, close, put, pick_up, turn_on, turn_off, done()]
+### Assistant: 1. done().
+### Human: What is correct plan?
+Current goal: 
+carry an alarm clock while turning on a lamp
+Current plan: 
+turn_on("desk lamp")
+Description: 
+1. The first step of the current plan has failed because the lamp is already turned on.
+2. The goal is achived, no need to do anything.
+3. The updated plan would be: done().
+4. This updated plan will still accomplish the goal of looking at the clock under the lamp but without trying to turn the lamp on again, which is already turned on.
+Available actions: 
+[move, slice, open, close, put, pick_up, turn_on, turn_off, done()]
+### Assistant: 1. done().
+### Human: What is correct plan?
+Current goal: 
+place a microwaved apple slice inside of the garbage can
+Current plan: 
+open("microwave"), put("microwave"), close("microwave"), turn_on("microwave"), turn_off("microwave"), open("microwave"), pick_up("apple sliced"), close("microwave"), move("garbage can"), put("garbage can")
+Description: 
+1. The first step of the current plan has failed because the microwave oven is already open.
+2. The next step would be to put apple slice in the microwave and close the microwave door, since the robot cannot open it any further.
+3. The updated plan would be: put("microwave"), close("microwave"), turn_on("microwave"), turn_off("microwave"), open("microwave"), pick_up("apple sliced"), close("microwave"), move("garbage can"), put("garbage can")
+4. This updated plan will still accomplish the goal of placing a microwaved apple slice inside of the garbage can, but without trying to open the microwave door again, which is already open.
+Available actions: 
+[move, slice, open, close, put, pick_up, turn_on, turn_off, done()]
+### Assistant: 1. put("microwave"), 2. close("microwave"), 3. turn_on("microwave"), 4. turn_off("microwave"), 5. open("microwave"), 6. pick_up("apple sliced"), 7. close("microwave"), 8. move("garbage can"), 9. put("garbage can"), 10. done().
+### Human: What is correct plan?
+Current goal: 
+place a heated cup on a counter
+Current plan: 
+open("microwave"), put("microwave"), close("microwave"), turn_on("microwave"), turn_off("microwave"), open("microwave"), pick_up("cup"), close("microwave"), move("counter"), put("counter")
+Description: 
+1. The first step of the current plan has failed because the microwave oven is already open.
+2. The next step would be to put cup in the microwave and close the microwave door, since the robot cannot open it any further.
+3. The updated plan would be: put("microwave"), close("microwave"), turn_on("microwave"), turn_off("microwave"), open("microwave"), pick_up("cup"), close("microwave"), move("counter"), put("counter")
+4. This updated plan will still accomplish the goal of placing a heated cup on a counter, but without trying to open the microwave door again, which is already open.
+Available actions: 
+[move, slice, open, close, put, pick_up, turn_on, turn_off, done()]
+### Assistant: 1. put("microwave"), 2. close("microwave"), 3. turn_on("microwave"), 4. turn_off("microwave"), 5. open("microwave"), 6. pick_up("cup"), 7. close("microwave"), 8. move("counter"), 9. put("counter"), 10. done().
+### Human: What is correct plan?
+Current goal: 
+place a chilled bowl in a cabinet
+Current plan: 
+open("fridge"), put("fridge"), close("fridge"), open("fridge"), pick_up("bowl"), close("fridge"), move("cabinet"), put("cabinet")
+Description: 
+1. The first step of the current plan has failed because the fridge is already open.
+2. The next step would be to put bowl in the fridge and close the fridge door, since the robot cannot open it any further.
+3. The updated plan would be: put("fridge"), close("fridge"), open("fridge"), pick_up("bowl"), close("fridge"), move("cabinet"), put("cabinet")
+4. This updated plan will still accomplish the goal of placing a chilled bowl in a cabinet, but without trying to open the fridge door again, which is already open.
+Available actions: 
+[move, slice, open, close, put, pick_up, turn_on, turn_off, done()]
+### Assistant: 1. put("fridge"), 2. close("fridge"), 3. open("fridge"), 4. pick_up("bowl"), 5. close("fridge"), 6. move("cabinet"), 7. put("cabinet"), 8. done(). 
+### Human: What is correct plan?
+Current goal: 
+put a chilled tomato in the microwave
+Current plan: 
+open("fridge"), put("fridge"), close("fridge"), open("fridge"), pick_up("bowl"), close("fridge"), move("cabinet"), put("cabinet")
+Description: 
+1. The first step of the current plan has failed because the fridge is already open.
+2. The next step would be to put tomato in the fridge and close the fridge door, since the robot cannot open it any further.
+3. The updated plan would be: put("fridge"), close("fridge"), open("fridge"), pick_up("tomato"), close("fridge"), move("microwave"), open("microwave"), put("microwave"), close("microwave")
+4. This updated plan will still accomplish the goal of placing a chilled bowl in a cabinet, but without trying to open the fridge door again, which is already open.
+Available actions: 
+[move, slice, open, close, put, pick_up, turn_on, turn_off, done()]
+### Assistant: 1. put("fridge"), 2. close("fridge"), 3. open("fridge"), 4. pick_up("tomato"), 5. close("fridge"), 6. move("microwave"), 7. open("microwave"), 8. put("microwave"), 9. close("microwave"), 10. done().
+### Human: What is correct plan?
+Current goal: 
+[goal]
+Current plan: 
+[current_plan]
+Description: 
+[explain_response]
+Available actions: 
+[move, slice, open, close, put, pick_up, turn_on, turn_off, done()]
+### Assistant:
+"""
+
+
+# ------------------------------------------------------------------------------------------------
 # All prompts
 # ------------------------------------------------------------------------------------------------
 
@@ -246,5 +416,10 @@ PROMPTS = {
         "look": look_prompt_alfred,
         "explain": explain_prompt_alfred,
         "replan": replan_prompt_alfred,
+    },
+    "alfred_2": {
+        "look": look_prompt_alfred_2,
+        "explain": explain_prompt_alfred_2,
+        "replan": replan_prompt_alfred_2,
     }
 }
