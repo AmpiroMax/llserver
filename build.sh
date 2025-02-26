@@ -21,7 +21,7 @@ if [ -z "$model_name" ]; then
 fi
 
 # Check if the model is available
-available_models=("api_model" "lera_api")
+available_models=("api_model" "lera_api" "lera_baseline")
 
 if [[ ! " ${available_models[@]} " =~ " ${model_name} " ]]; then
     echo "Model $model_name is not available. Available models: ${available_models[@]}"
