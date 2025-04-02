@@ -41,7 +41,7 @@
 ./build.sh --model <имя_модели>
 ```
 
-Доступные модели: `api_model`, `lera_api`, `lera_baseline`, `ecot`, `cogact`.
+Доступные модели: `api_model`, `ecot`, `cogact`.
 
 Пример:
 ```bash
