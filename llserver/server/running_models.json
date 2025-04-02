@@ -1,1 +1,10 @@
-{}
+{
+    "models": {
+        "4c676f9f-3cac-4933-9594-95ae319613a4": {
+            "model_name": "api_model",
+            "model_id": "4c676f9f-3cac-4933-9594-95ae319613a4",
+            "container_id": "f059cab806fa25aefcadbb16719c330b723602c0e02bf4165e894f2783be2096",
+            "port": 8081
+        }
+    }
+}
