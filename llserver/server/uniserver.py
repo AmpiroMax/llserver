@@ -1,4 +1,5 @@
 import uuid
+import os
 import docker
 from fastapi import FastAPI, Form, Body
 from pydantic import BaseModel
@@ -21,7 +22,7 @@ class ModelInfo(BaseModel):
 class RunningModels(BaseModel):
     models: Dict[str, ModelInfo]
 
-base_path = '/home/mpatratskiy/work/meta_world/llserver'
+base_path = os.path.join(os.getcwd(), "../..")
 
 running_models_data = read_json(base_path+'/llserver/server/running_models.json')
 running_models_info: RunningModels = RunningModels(models={
