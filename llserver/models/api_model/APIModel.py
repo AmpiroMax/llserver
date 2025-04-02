@@ -29,7 +29,7 @@ class APIModel:
         self.logger.log(f"Начинаем приветствие...")
         # https://aitunnel.ru/#models
         self.client = OpenAI(
-            api_key="sk-aitunnel-lRVzfpdyQrVrYJGyxiFkgMMXLSz5P2Oz", # Ключ из нашего сервиса
+            api_key="", # Ключ из нашего сервиса
             base_url="https://api.aitunnel.ru/v1/",
         )
         
