@@ -74,12 +74,23 @@ async def start_model(model_name: str):
                     'bind': '/llserver/logs',   
                     'mode': 'rw',
                 },
+                base_path+'/models': {
+                    'bind': '/home/models',
+                    'mode': 'rw',
+                },
                 '/home/mpatratskiy/work/eai_fiqa/data': {
                     'bind': '/llserver/alfred/data',
                     'mode': 'rw',
-                }
+                },
             },
             detach=True,
+            device_requests=[
+                docker.types.DeviceRequest(
+                    count=-1,  # Use all available GPUs
+                    capabilities=[['gpu']]
+                )
+            ]
+
         )
         
         logger.log(f"Модель {model_name} c id {model_id} запущена в контейнере {container.id}")
