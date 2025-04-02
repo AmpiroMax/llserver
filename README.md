@@ -1,109 +1,118 @@
-# Project Name
+# LLServer
 
-This project provides a framework for managing and interacting with various AI models using a unified server (`uniserver`) and a handler for easy communication. The models are containerized and can be started, stopped, and queried for tasks and results.
+Данный проект предоставляет фреймворк для управления и взаимодействия с различными AI моделями с использованием унифицированного сервера (`uniserver`) и обработчика для упрощенной коммуникации. Модели контейнеризированы и могут быть запущены, остановлены и опрошены для выполнения задач и получения результатов.
 
-## Features
+## Основные возможности
 
-- **Unified Server (`uniserver`)**: A FastAPI-based server that manages the lifecycle of AI model containers.
-- **Handler**: A Python class for interacting with the `uniserver` to manage models and tasks.
-- **Model Management**: Start, stop, and monitor models.
-- **Task Management**: Submit tasks to models and retrieve results.
+- **Унифицированный сервер (`uniserver`)**: Сервер на основе FastAPI, управляющий жизненным циклом контейнеров AI моделей.
+- **Обработчик (Handler)**: Python-класс для взаимодействия с `uniserver` для управления моделями и задачами.
+- **Управление моделями**: Запуск, остановка и мониторинг моделей.
+- **Управление задачами**: Отправка задач моделям и получение результатов.
 
-## Prerequisites
+## Требования
 
 - Docker
-- Python 3.8+
+- Python 3.10+
 - FastAPI
 - Uvicorn
 
-## Installation
+## Установка
 
-1. Clone the repository:
+1. Клонируйте репозиторий:
    ```bash
-   git clone https://github.com/your-repo/project-name.git
-   cd project-name
+   git clone https://github.com/AmpiroMax/llserver.git -b v0.1.0
+   cd llserver
    ```
 
-2. Install the required Python packages:
+2. Установите необходимые Python-пакеты:
    ```bash
    pip install -r dev_requirements.txt
    ```
 
-3. Ensure Docker is installed and running on your machine.
+3. Убедитесь, что Docker установлен и запущен на вашем компьютере.
 
-## Usage
+## Использование
 
-### Starting the Uniserver
+### Сборка модели
 
-To start the `uniserver`, run the following command:
+Перед запуском модели необходимо собрать Docker-образ:
+
+```bash
+./build.sh --model <имя_модели>
+```
+
+Доступные модели: `api_model`, `lera_api`, `lera_baseline`, `ecot`, `cogact`.
+
+Пример:
+```bash
+./build.sh --model api_model
+```
+
+### Запуск Uniserver
+
+Для запуска `uniserver`, выполните следующую команду:
 
 ```bash
 ./run_uniserver.sh
 ```
 
-### Using the Handler
+### Использование обработчика (Handler)
 
-The `UniserverHandler` class provides an interface to interact with the `uniserver`. Below are examples of how to use it:
+Класс `UniserverHandler` предоставляет интерфейс для взаимодействия с `uniserver`. Ниже приведены примеры его использования:
 
-#### Initialize the Handler
+#### Инициализация обработчика
 
 ```python
 from llserver.utils.handler import UniserverHandler
 
-# Initialize the handler with the port where the uniserver is running
+# Инициализация обработчика с портом, на котором запущен uniserver
 handler = UniserverHandler(port=8000)
 ```
 
-#### Get Running Models
+#### Получение списка запущенных моделей
 
 ```python
 running_models = handler.get_running_models()
 print(running_models)
 ```
 
-#### Start a Model
-Before starting a model, you need to build a docker image for it.
+#### Запуск модели
 
-```bash
-./build_model.sh --model api_model
-```
-
-Then you can start the model.
 ```python
 response = handler.start_model("api_model")
 print(response)
 ```
 
-#### Stop a Model
+#### Остановка модели
 
 ```python
 response = handler.stop_model("a2a59714-f407-4e40-a460-688793a3562f")
 print(response)
 ```
 
-#### Submit a Task
+#### Отправка задачи
 
 ```python
 task_id = handler.put_task(
     model_id="a2a59714-f407-4e40-a460-688793a3562f",
-    image_paths=["/path/to/image1.jpg", "/path/to/image2.jpg"],
-    prompt="Describe the scene in the images."
+    image_paths=["/путь/к/изображению1.jpg", "/путь/к/изображению2.jpg"],
+    prompt="Опишите сцену на изображениях."
 )
 print(task_id)
 ```
 
-#### Get Task Result
+#### Получение результата задачи
 
 ```python
 result = handler.get_task_result(
     model_id="a2a59714-f407-4e40-a460-688793a3562f",
-    task_id="your-task-id"
+    task_id="id-вашей-задачи"
 )
 print(result)
 ```
 
-## Configuration
+## Конфигурация
 
-- **Dockerfile**: Each model has its own Dockerfile for containerization.
-- **Requirements**: Each model has a `requirements.txt` file specifying its dependencies.
+- **Dockerfile**: Каждая модель имеет свой Dockerfile для контейнеризации.
+- **Requirements**: Каждая модель имеет файл `requirements.txt`, указывающий её зависимости.
 
