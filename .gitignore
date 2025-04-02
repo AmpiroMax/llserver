@@ -95,3 +95,7 @@ pyvenv.cfg
 
 # Data
 *data
+
+# HF Models
+models/hub*
+models/modules*
