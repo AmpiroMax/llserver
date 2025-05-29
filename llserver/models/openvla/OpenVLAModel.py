@@ -4,46 +4,26 @@ import asyncio
 from PIL import Image
 import uuid
 import torch
-import numpy as np
 torch.backends.cuda.enable_mem_efficient_sdp(False)
 torch.backends.cuda.enable_flash_sdp(False)
 os.environ["HF_HOME"] = "/home/models"
-os.environ["HF_TOKEN"] = "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"
 
 import warnings
-from llserver.models.cogact.vla import load_vla
+from transformers import AutoProcessor, AutoModelForVision2Seq
 from llserver.utils.custom_logger import CustomLogger  # Импортируем логгер
 
 warnings.filterwarnings("ignore")
 
-class CogActModel:
-    def __init__(self, model_path="CogACT/CogACT-Base", device="cuda:2", logger=None, action_model_type="DiT-B"):
+class OpenVLAModel:
+    def __init__(self, model_path="openvla/openvla-7b", device="cuda:2", logger=None):
         self.device = device
         self.model_path = model_path
         self.logger = logger or CustomLogger(mode="logging")
-        self.action_model_type = action_model_type
         
-        # Загрузка модели CogACT
-        self.model = load_vla(
-            self.model_path,
-            load_for_training=False,
-            action_model_type=self.action_model_type,
-            future_action_window_size=15,
-        )
-        
-        # Print available GPU memory
-        if self.device.startswith('cuda'):
-            free_memory, total_memory = torch.cuda.mem_get_info(torch.device(self.device).index)
-            free_memory_gb = free_memory / (1024 ** 3)
-            total_memory_gb = total_memory / (1024 ** 3)
-            self.logger.log(f"GPU {self.device}: {free_memory_gb:.2f}GB free / {total_memory_gb:.2f}GB total")
-        
-        # Опционально: можно использовать bfloat16 для экономии памяти
-        self.model.vlm = self.model.vlm.to(torch.bfloat16)
-        
-        # Перемещаем модель на указанное устройство и переводим в режим оценки
-        self.model.to(self.device).eval()
-        
+        # Загрузка модели и процессора
+        self.processor = AutoProcessor.from_pretrained(self.model_path, trust_remote_code=True)
+        self.model = AutoModelForVision2Seq.from_pretrained(self.model_path, torch_dtype=torch.bfloat16, trust_remote_code=True).to(self.device)
+        self.model.eval()
 
         self.task_queue = asyncio.Queue()  # Очередь задач
         self.result_queue = {}  # Результаты задач
@@ -60,28 +40,13 @@ class CogActModel:
         if len(image_paths) > 1:
             self.logger.log("Warning: The model can only process one image at a time. Only the first image will be used.")
         image = Image.open(image_paths[0])
+        inputs = self.processor(prompt, image).to(self.device, dtype=torch.bfloat16)
 
-        # Генерация ответа модели CogACT
-        actions, _ = self.model.predict_action(
-            image,
-            prompt,
-            unnorm_key='bridge_orig',  # ключ для нормализации данных
-            # unnorm_key='fractal20220817_data',  # ключ для нормализации данных
-            cfg_scale=1.5,                      # параметр CFG
-            use_ddim=True,                      # использование DDIM сэмплирования
-            num_ddim_steps=10,                  # количество шагов DDIM
-        )
+        # Генерация ответа модели
+        action = self.model.predict_action(**inputs, unnorm_key="bridge_orig", do_sample=False)
 
         # Обновляем результат и статус задачи
-        # Ensure all data is JSON serializable
-        if isinstance(actions, torch.Tensor):
-            actions = actions.cpu().numpy()
-        if isinstance(actions, np.ndarray):
-            actions = actions.tolist()
-            
-        self.result_queue[task_id] = {
-            "action": actions
-        }
+        self.result_queue[task_id] = {"action": action.tolist()}
         torch.cuda.empty_cache()
         self.task_status[task_id] = "completed"
         self.logger.log(f"Задача {task_id} успешно завершена")

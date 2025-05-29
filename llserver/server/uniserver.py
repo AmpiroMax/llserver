@@ -75,7 +75,7 @@ async def start_model(model_name: str):
                     'bind': '/llserver/logs',   
                     'mode': 'rw',
                 },
-                base_path+'/models': {
+                "/data/mapatratskiy/models": {
                     'bind': '/home/models',
                     'mode': 'rw',
                 },

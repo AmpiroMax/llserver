@@ -15,7 +15,7 @@ from llserver.utils.custom_logger import CustomLogger  # Импортируем 
 warnings.filterwarnings("ignore")
 
 class ECoTModel:
-    def __init__(self, model_path="Embodied-CoT/ecot-openvla-7b-bridge", device="cuda:2", logger=None):
+    def __init__(self, model_path="Embodied-CoT/ecot-openvla-7b-bridge", device="cuda:0", logger=None):
         self.device = device
         self.model_path = model_path
         self.logger = logger or CustomLogger(mode="logging")
